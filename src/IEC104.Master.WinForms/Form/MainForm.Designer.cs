@@ -37,7 +37,7 @@ namespace IEC104.Master.WinForms.Form
             // 
             // btnConnect
             // 
-            btnConnect.Location = new Point(183, 76);
+            btnConnect.Location = new Point(126, 90);
             btnConnect.Name = "btnConnect";
             btnConnect.Size = new Size(94, 29);
             btnConnect.TabIndex = 0;
@@ -53,6 +53,7 @@ namespace IEC104.Master.WinForms.Form
             btnDisconnect.TabIndex = 1;
             btnDisconnect.Text = "btnDisconnect";
             btnDisconnect.UseVisualStyleBackColor = true;
+            btnDisconnect.Click += btnDisconnect_Click_1;
             // 
             // btnGI
             // 
@@ -62,20 +63,21 @@ namespace IEC104.Master.WinForms.Form
             btnGI.TabIndex = 2;
             btnGI.Text = "btnGI";
             btnGI.UseVisualStyleBackColor = true;
+            btnGI.Click += btnGI_Click_1;
             // 
             // lstLog
             // 
             lstLog.FormattingEnabled = true;
-            lstLog.Location = new Point(396, 304);
+            lstLog.Location = new Point(75, 304);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(150, 104);
+            lstLog.Size = new Size(582, 104);
             lstLog.TabIndex = 3;
             lstLog.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             // 
             // lblStatus
             // 
             lblStatus.AutoSize = true;
-            lblStatus.Location = new Point(434, 201);
+            lblStatus.Location = new Point(328, 32);
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(66, 20);
             lblStatus.TabIndex = 4;

@@ -38,7 +38,7 @@ public partial class MainForm : System.Windows.Forms.Form
         btnGI.Enabled = true;
     }
 
-    private async void btnDisconnect_Click(object sender, EventArgs e)
+    private async void btnDisconnect_Click_1(object sender, EventArgs e)
     {
         await _appService.DisconnectAsync();
         btnConnect.Enabled = true;
@@ -46,7 +46,7 @@ public partial class MainForm : System.Windows.Forms.Form
         btnGI.Enabled = false;
     }
 
-    private async void btnGI_Click(object sender, EventArgs e)
+    private async void btnGI_Click_1(object sender, EventArgs e)
     {
         await _appService.SendGeneralInterrogationAsync(new GeneralInterrogationRequestDto(20));
     }
