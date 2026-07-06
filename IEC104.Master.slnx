@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/IEC104.Master.Application/IEC104.Master.Application.csproj" />
+  <Project Path="src/IEC104.Master.Domain/IEC104.Master.Domain.csproj" />
+  <Project Path="src/IEC104.Master.Infrastructure/IEC104.Master.Infrastructure.csproj" />
+  <Project Path="src/IEC104.Master.Shared/IEC104.Master.Shared.csproj" />
+  <Project Path="src/IEC104.Master.WinForms/IEC104.Master.WinForms.csproj" />
+</Solution>
