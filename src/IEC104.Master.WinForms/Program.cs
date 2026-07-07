@@ -41,7 +41,7 @@ internal static class Program
 
         builder.Services.AddSingleton(new Iec104Options
         {
-            Host = "127.0.0.1",
+            Host = "172.18.20.186",
             Port = 2404,
             CommonAddress = 1,
             TimeoutMs = 5000,
