@@ -120,7 +120,7 @@ public partial class MainForm : System.Windows.Forms.Form
 
         ShowLoading(true);
         // ========== اضافه کردن تاخیر تستی ==========
-        await Task.Delay(5000); // ۵ ثانیه تاخیر برای مشاهده‌ی لودینگ
+        await Task.Delay(3000); // ۵ ثانیه تاخیر برای مشاهده‌ی لودینگ
         // ===========================================
 
         try

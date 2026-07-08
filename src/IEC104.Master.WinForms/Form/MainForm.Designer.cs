@@ -17,107 +17,116 @@ namespace IEC104.Master.WinForms.Form
 
         private void InitializeComponent()
         {
-            // ===== تعریف کنترل‌ها =====
-            this.panlLoading = new Panel();        // ← استفاده از this
-            this.lbLoading = new Label();
-            this.progressBarLoading = new ProgressBar();
-            this.btnConnect = new Button();
-            this.btnDisconnect = new Button();
-            this.btnGI = new Button();
-            this.lstLog = new ListBox();
-            this.lblStatus = new Label();
-
-            // ===== پیکربندی panlLoading (پنل اصلی) =====
-            this.panlLoading.BackColor = Color.LightGray;
-            this.panlLoading.BorderStyle = BorderStyle.FixedSingle;
-            this.panlLoading.Location = new Point(275, 150);
-            this.panlLoading.Name = "panlLoading";
-            this.panlLoading.Size = new Size(250, 100);
-            this.panlLoading.TabIndex = 5;
-            this.panlLoading.Visible = false;
-            // ★ اضافه کردن لیبل و ProgressBar به پنل
-            this.panlLoading.Controls.Add(this.lbLoading);
-            this.panlLoading.Controls.Add(this.progressBarLoading);
-
-            // ===== پیکربندی lbLoading (لیبل داخل پنل) =====
-            this.lbLoading.AutoSize = true;
-            this.lbLoading.Location = new Point(75, 15);   // نسبت به پنل
-            this.lbLoading.Name = "lbLoading";
-            this.lbLoading.Size = new Size(101, 20);
-            this.lbLoading.TabIndex = 6;
-            this.lbLoading.Text = "⏳ درحال اتصال...";
-            this.lbLoading.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            this.lbLoading.ForeColor = Color.DarkBlue;
-
-            // ===== پیکربندی progressBarLoading =====
-            this.progressBarLoading.Location = new Point(25, 50); // نسبت به پنل
-            this.progressBarLoading.Name = "progressBarLoading";
-            this.progressBarLoading.Size = new Size(200, 23);
-            this.progressBarLoading.TabIndex = 7;
-            this.progressBarLoading.Style = ProgressBarStyle.Marquee;  // ★ حالت چرخشی
-            this.progressBarLoading.MarqueeAnimationSpeed = 30;
-
-            // ===== دکمه Connect =====
-            this.btnConnect.Location = new Point(126, 90);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new Size(94, 29);
-            this.btnConnect.TabIndex = 0;
-            this.btnConnect.Text = "Connect";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += this.btnConnect_Click_1;
-
-            // ===== دکمه Disconnect =====
-            this.btnDisconnect.Location = new Point(328, 90);
-            this.btnDisconnect.Name = "btnDisconnect";
-            this.btnDisconnect.Size = new Size(94, 29);
-            this.btnDisconnect.TabIndex = 1;
-            this.btnDisconnect.Text = "Disconnect";
-            this.btnDisconnect.UseVisualStyleBackColor = true;
-            this.btnDisconnect.Click += this.btnDisconnect_Click_1;
-
-            // ===== دکمه GI =====
-            this.btnGI.Location = new Point(467, 90);
-            this.btnGI.Name = "btnGI";
-            this.btnGI.Size = new Size(94, 29);
-            this.btnGI.TabIndex = 2;
-            this.btnGI.Text = "GI";
-            this.btnGI.UseVisualStyleBackColor = true;
-            this.btnGI.Click += this.btnGI_Click_1;
-
-            // ===== لیست لاگ =====
-            this.lstLog.FormattingEnabled = true;
-            this.lstLog.Location = new Point(75, 304);
-            this.lstLog.Name = "lstLog";
-            this.lstLog.Size = new Size(582, 104);
-            this.lstLog.TabIndex = 3;
-            this.lstLog.SelectedIndexChanged += this.listBox1_SelectedIndexChanged;
-
-            // ===== لیبل وضعیت =====
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new Point(328, 32);
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new Size(66, 20);
-            this.lblStatus.TabIndex = 4;
-            this.lblStatus.Text = "Disconnected";
-
-            // ===== اضافه کردن کنترل‌ها به فرم =====
-            // ★ فقط پنل را به فرم اضافه می‌کنیم (لیبل و ProgressBar داخل پنل هستند)
-            this.Controls.Add(this.panlLoading);
-            this.Controls.Add(this.lblStatus);
-            this.Controls.Add(this.lstLog);
-            this.Controls.Add(this.btnGI);
-            this.Controls.Add(this.btnDisconnect);
-            this.Controls.Add(this.btnConnect);
-
-            // ===== تنظیمات فرم =====
-            this.AutoScaleDimensions = new SizeF(8F, 20F);
-            this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(800, 450);
-            this.Name = "MainForm";
-            this.Text = "IEC 104 Master";
-            this.Load += this.MainForm_Load;
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            Panel panlLoading;
+            lbLoading = new Label();
+            progressBarLoading = new ProgressBar();
+            btnConnect = new Button();
+            btnDisconnect = new Button();
+            btnGI = new Button();
+            lstLog = new ListBox();
+            lblStatus = new Label();
+            panlLoading = new Panel();
+            panlLoading.SuspendLayout();
+            SuspendLayout();
+            // 
+            // panlLoading
+            // 
+            panlLoading.BackColor = Color.LightGray;
+            panlLoading.BorderStyle = BorderStyle.FixedSingle;
+            panlLoading.Controls.Add(lbLoading);
+            panlLoading.Controls.Add(progressBarLoading);
+            panlLoading.Location = new Point(275, 150);
+            panlLoading.Name = "panlLoading";
+            panlLoading.Size = new Size(250, 100);
+            panlLoading.TabIndex = 5;
+            panlLoading.Visible = false;
+            // 
+            // lbLoading
+            // 
+            lbLoading.AutoSize = true;
+            lbLoading.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lbLoading.ForeColor = Color.DarkBlue;
+            lbLoading.Location = new Point(75, 15);
+            lbLoading.Name = "lbLoading";
+            lbLoading.Size = new Size(142, 23);
+            lbLoading.TabIndex = 6;
+            lbLoading.Text = "⏳ درحال اتصال...";
+            // 
+            // progressBarLoading
+            // 
+            progressBarLoading.Location = new Point(25, 50);
+            progressBarLoading.MarqueeAnimationSpeed = 30;
+            progressBarLoading.Name = "progressBarLoading";
+            progressBarLoading.Size = new Size(200, 23);
+            progressBarLoading.Style = ProgressBarStyle.Marquee;
+            progressBarLoading.TabIndex = 7;
+            // 
+            // btnConnect
+            // 
+            btnConnect.Location = new Point(126, 90);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(94, 29);
+            btnConnect.TabIndex = 0;
+            btnConnect.Text = "Connect";
+            btnConnect.UseVisualStyleBackColor = true;
+            btnConnect.Click += btnConnect_Click_1;
+            // 
+            // btnDisconnect
+            // 
+            btnDisconnect.Location = new Point(328, 90);
+            btnDisconnect.Name = "btnDisconnect";
+            btnDisconnect.Size = new Size(94, 29);
+            btnDisconnect.TabIndex = 1;
+            btnDisconnect.Text = "Disconnect";
+            btnDisconnect.UseVisualStyleBackColor = true;
+            btnDisconnect.Click += btnDisconnect_Click_1;
+            // 
+            // btnGI
+            // 
+            btnGI.Location = new Point(467, 90);
+            btnGI.Name = "btnGI";
+            btnGI.Size = new Size(94, 29);
+            btnGI.TabIndex = 2;
+            btnGI.Text = "GI";
+            btnGI.UseVisualStyleBackColor = true;
+            btnGI.Click += btnGI_Click_1;
+            // 
+            // lstLog
+            // 
+            lstLog.FormattingEnabled = true;
+            lstLog.Location = new Point(12, 304);
+            lstLog.Name = "lstLog";
+            lstLog.Size = new Size(1240, 244);
+            lstLog.TabIndex = 3;
+            lstLog.SelectedIndexChanged += listBox1_SelectedIndexChanged;
+            // 
+            // lblStatus
+            // 
+            lblStatus.AutoSize = true;
+            lblStatus.Location = new Point(328, 32);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(99, 20);
+            lblStatus.TabIndex = 4;
+            lblStatus.Text = "Disconnected";
+            // 
+            // MainForm
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1295, 746);
+            Controls.Add(panlLoading);
+            Controls.Add(lblStatus);
+            Controls.Add(lstLog);
+            Controls.Add(btnGI);
+            Controls.Add(btnDisconnect);
+            Controls.Add(btnConnect);
+            Name = "MainForm";
+            Text = "IEC 104 Master";
+            Load += MainForm_Load;
+            panlLoading.ResumeLayout(false);
+            panlLoading.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
