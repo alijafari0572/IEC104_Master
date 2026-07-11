@@ -16,5 +16,7 @@ namespace IEC104.Master.Application.Abstractions
         Task DisconnectAsync(CancellationToken cancellationToken = default);
 
         Task SendGeneralInterrogationAsync(GeneralInterrogationRequestDto request, CancellationToken cancellationToken = default);
+
+        Task SendGroupInterrogationAsync(GeneralInterrogationRequestDto request, CancellationToken cancellationToken = default);
     }
 }

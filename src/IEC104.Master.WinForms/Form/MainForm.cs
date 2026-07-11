@@ -153,4 +153,13 @@ public partial class MainForm : System.Windows.Forms.Form
             ShowLoading(false);
         }
     }
+
+    private async void GroupI_Click(object sender, EventArgs e)
+    {
+        // خواندن مقدار QOI از کنترل
+        byte qoi = (byte)nudQoi.Value;
+
+        // ارسال درخواست بازجویی عمومی با QOI انتخاب‌شده
+        await _appService.SendGroupInterrogationAsync(new GeneralInterrogationRequestDto(qoi));
+    }
 }

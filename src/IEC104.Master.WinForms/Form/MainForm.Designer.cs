@@ -25,8 +25,12 @@ namespace IEC104.Master.WinForms.Form
             btnGI = new Button();
             lstLog = new ListBox();
             lblStatus = new Label();
+            lblQoi = new Label();
+            nudQoi = new NumericUpDown();
+            GroupI = new Button();
             panlLoading = new Panel();
             panlLoading.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudQoi).BeginInit();
             SuspendLayout();
             // 
             // panlLoading
@@ -109,11 +113,44 @@ namespace IEC104.Master.WinForms.Form
             lblStatus.TabIndex = 4;
             lblStatus.Text = "Disconnected";
             // 
+            // lblQoi
+            // 
+            lblQoi.AutoSize = true;
+            lblQoi.Location = new Point(881, 106);
+            lblQoi.Name = "lblQoi";
+            lblQoi.Size = new Size(50, 20);
+            lblQoi.TabIndex = 6;
+            lblQoi.Text = "lblQoi";
+            // 
+            // nudQoi
+            // 
+            nudQoi.Location = new Point(967, 99);
+            nudQoi.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+            nudQoi.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            nudQoi.Name = "nudQoi";
+            nudQoi.Size = new Size(150, 27);
+            nudQoi.TabIndex = 6;
+            nudQoi.TextAlign = HorizontalAlignment.Center;
+            nudQoi.Value = new decimal(new int[] { 20, 0, 0, 0 });
+            // 
+            // GroupI
+            // 
+            GroupI.Location = new Point(710, 102);
+            GroupI.Name = "GroupI";
+            GroupI.Size = new Size(150, 29);
+            GroupI.TabIndex = 7;
+            GroupI.Text = "Group Integrrate";
+            GroupI.UseVisualStyleBackColor = true;
+            GroupI.Click += GroupI_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1295, 746);
+            Controls.Add(GroupI);
+            Controls.Add(nudQoi);
+            Controls.Add(lblQoi);
             Controls.Add(panlLoading);
             Controls.Add(lblStatus);
             Controls.Add(lstLog);
@@ -125,6 +162,7 @@ namespace IEC104.Master.WinForms.Form
             Load += MainForm_Load;
             panlLoading.ResumeLayout(false);
             panlLoading.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudQoi).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -140,5 +178,8 @@ namespace IEC104.Master.WinForms.Form
         private Panel panlLoading;
         private Label lbLoading;
         private ProgressBar progressBarLoading;
+        private Label lblQoi;
+        private NumericUpDown nudQoi;
+        private Button GroupI;
     }
 }

@@ -30,5 +30,9 @@ namespace IEC104.Master.Application.Services
 
         public Task SendGeneralInterrogationAsync(GeneralInterrogationRequestDto request, CancellationToken cancellationToken = default)
             => _transport.SendGeneralInterrogationAsync(request.Qoi, cancellationToken);
+
+        public Task SendGroupInterrogationAsync(GeneralInterrogationRequestDto request, CancellationToken cancellationToken = default)
+        =>
+            _transport.SendGeneralInterrogationAsync(request.Qoi, cancellationToken);
     }
 }
