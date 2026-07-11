@@ -25,8 +25,10 @@ namespace IEC104.Master.WinForms.Form
             btnGI = new Button();
             lstLog = new ListBox();
             lblStatus = new Label();
+            dgvAsduData = new DataGridView();
             panlLoading = new Panel();
             panlLoading.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAsduData).BeginInit();
             SuspendLayout();
             // 
             // panlLoading
@@ -96,7 +98,7 @@ namespace IEC104.Master.WinForms.Form
             lstLog.FormattingEnabled = true;
             lstLog.Location = new Point(12, 304);
             lstLog.Name = "lstLog";
-            lstLog.Size = new Size(1240, 244);
+            lstLog.Size = new Size(1378, 244);
             lstLog.TabIndex = 3;
             lstLog.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             // 
@@ -109,11 +111,25 @@ namespace IEC104.Master.WinForms.Form
             lblStatus.TabIndex = 4;
             lblStatus.Text = "Disconnected";
             // 
+            // dgvAsduData
+            // 
+            dgvAsduData.AllowUserToAddRows = false;
+            dgvAsduData.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvAsduData.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvAsduData.Location = new Point(12, 554);
+            dgvAsduData.Name = "dgvAsduData";
+            dgvAsduData.ReadOnly = true;
+            dgvAsduData.RowHeadersWidth = 51;
+            dgvAsduData.Size = new Size(1326, 188);
+            dgvAsduData.TabIndex = 8;
+            dgvAsduData.CellContentClick += dataGridView1_CellContentClick;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1295, 746);
+            ClientSize = new Size(1402, 746);
+            Controls.Add(dgvAsduData);
             Controls.Add(panlLoading);
             Controls.Add(lblStatus);
             Controls.Add(lstLog);
@@ -125,6 +141,7 @@ namespace IEC104.Master.WinForms.Form
             Load += MainForm_Load;
             panlLoading.ResumeLayout(false);
             panlLoading.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAsduData).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -140,5 +157,6 @@ namespace IEC104.Master.WinForms.Form
         private Panel panlLoading;
         private Label lbLoading;
         private ProgressBar progressBarLoading;
+        private DataGridView dgvAsduData;
     }
 }

@@ -1,8 +1,7 @@
 ﻿using lib60870.CS101;
 using lib60870.CS104;
-
-using lib60870.CS104;
-
+using IEC104.Master.Infrastructure.Models;
+using IEC104.Master.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +11,7 @@ namespace IEC104.Master.Infrastructure.Adapters
     public sealed class Lib60870ConnectionAdapter : ILib60870ConnectionAdapter
     {
         private Connection? _connection;
+        private readonly ASDUParser _parser = new ASDUParser();
 
         public event Action? Connected;
 
@@ -19,7 +19,7 @@ namespace IEC104.Master.Infrastructure.Adapters
 
         public event Action<string>? ErrorOccurred;
 
-        public event Action<string>? AsduReceived;
+        public event Action<ParsedASDU>? AsduReceived;
 
         public bool Connect(string host, int port, int commonAddress, int timeoutMs)
         {
@@ -84,7 +84,8 @@ namespace IEC104.Master.Infrastructure.Adapters
 
         private bool OnAsduReceived(object parameter, ASDU asdu)
         {
-            AsduReceived?.Invoke(asdu.ToString());
+            var parsedAsdu = _parser.Parse(asdu);
+            AsduReceived?.Invoke(parsedAsdu);
             return true;
         }
 

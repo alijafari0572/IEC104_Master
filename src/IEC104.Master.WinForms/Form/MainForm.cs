@@ -2,6 +2,7 @@ using IEC104.Master.Application.Abstractions;
 using IEC104.Master.Application.DTOs;
 using IEC104.Master.Infrastructure.Options;
 using IEC104.Master.WinForms.Form;
+using IEC104.Master.WinForms.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IEC104.Master.WinForms.Form;
@@ -11,6 +12,8 @@ public partial class MainForm : System.Windows.Forms.Form
     private readonly IIec104MasterAppService _appService;
     private readonly Iec104Options _options;
     private readonly IServiceProvider _serviceProvider; // ← اضافه کنید
+    private readonly BindingSource _asduBindingSource = new BindingSource();
+    private readonly List<AsduDisplayModel> _asduDisplayList = new List<AsduDisplayModel>();
 
     public MainForm(IIec104MasterAppService appService, Iec104Options options, IServiceProvider serviceProvider)
     {
@@ -29,8 +32,35 @@ public partial class MainForm : System.Windows.Forms.Form
         btnGI.Enabled = false;
         lblStatus.Text = "Disconnected";
 
+        dgvAsduData.DataSource = _asduBindingSource;
+        _asduBindingSource.DataSource = _asduDisplayList;
+
+        // تنظیم ستون‌ها
+        ConfigureDataGridView();
+
         // شروع اتصال خودکار
         await AutoConnectAsync();
+    }
+
+    private void ConfigureDataGridView()
+    {
+        // اجازه دهید ستون‌ها به‌صورت خودکار از مدل ساخته شوند
+        dgvAsduData.AutoGenerateColumns = true;
+        dgvAsduData.DataSource = _asduBindingSource;
+
+        // پس از اتصال، عنوان ستون‌ها را به فارسی تغییر دهید
+        if (dgvAsduData.Columns.Count > 0)
+        {
+            dgvAsduData.Columns["Timestamp"].HeaderText = "زمان";
+            dgvAsduData.Columns["TypeId"].HeaderText = "Type ID";
+            dgvAsduData.Columns["TypeName"].HeaderText = "نوع";
+            dgvAsduData.Columns["ValueType"].HeaderText = "نوع مقدار";
+            dgvAsduData.Columns["CommonAddress"].HeaderText = "آدرس مشترک";
+            dgvAsduData.Columns["CotDescription"].HeaderText = "COT";
+            dgvAsduData.Columns["InformationObjectAddress"].HeaderText = "IOA";
+            dgvAsduData.Columns["Value"].HeaderText = "مقدار";
+            dgvAsduData.Columns["Quality"].HeaderText = "کیفیت";
+        }
     }
 
     private async void btnConnect_Click_1(object sender, EventArgs e)
@@ -66,6 +96,35 @@ public partial class MainForm : System.Windows.Forms.Form
         {
             BeginInvoke(new Action(() => OnMessagePublished(message)));
             return;
+        }
+        // نمایش در DataGridView
+        if (message.Points != null && message.Points.Any())
+        {
+            // پاک کردن لیست قبلی (اختیاری - می‌توانید نگه دارید)
+            // _asduDisplayList.Clear();
+
+            foreach (var point in message.Points)
+            {
+                _asduDisplayList.Add(new AsduDisplayModel
+                {
+                    Timestamp = message.Timestamp,
+                    TypeId = message.TypeId,
+                    TypeName = message.TypeName,
+                    ValueType = point.ValueType,
+                    CommonAddress = message.CommonAddress,
+                    CotDescription = message.CotDescription,
+                    InformationObjectAddress = point.ObjectAddress,
+                   
+                    Value = point.Value,
+                    Quality = point.Quality
+                });
+            }
+
+            // به‌روزرسانی BindingSource
+            _asduBindingSource.ResetBindings(false);
+
+            // اسکرول به پایین
+            dgvAsduData.FirstDisplayedScrollingRowIndex = dgvAsduData.Rows.Count - 1;
         }
 
         lstLog.Items.Insert(0, $"{message.Timestamp:HH:mm:ss} [{message.Kind}] {message.Title} - {message.Details}");
@@ -152,5 +211,9 @@ public partial class MainForm : System.Windows.Forms.Form
         {
             ShowLoading(false);
         }
+    }
+
+    private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+    {
     }
 }
