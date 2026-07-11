@@ -83,10 +83,17 @@ namespace IEC104.Master.Infrastructure.Services
             return Task.CompletedTask;
         }
 
-        public Task DisconnectAsync(CancellationToken cancellationToken = default)
+        public async Task DisconnectAsync(CancellationToken cancellationToken = default)
         {
-            _adapter.Disconnect();
-            return Task.CompletedTask;
+            // اجرای قطع اتصال در یک ترد جداگانه
+            await Task.Run(() =>
+            {
+                _adapter.Disconnect();
+                // ★ به‌روزرسانی دستی وضعیت پس از قطع اتصال
+                ConnectionStateChanged?.Invoke(false);
+                MessageReceived?.Invoke(new ProtocolMessageDto(
+                    DateTimeOffset.Now, "Info", "Connection", "Disconnected"));
+            });
         }
 
         public Task SendGeneralInterrogationAsync(byte qoi, CancellationToken cancellationToken = default)

@@ -44,11 +44,24 @@ public partial class MainForm : System.Windows.Forms.Form
 
     private void ConfigureDataGridView()
     {
-        // اجازه دهید ستون‌ها به‌صورت خودکار از مدل ساخته شوند
         dgvAsduData.AutoGenerateColumns = true;
         dgvAsduData.DataSource = _asduBindingSource;
+        dgvAsduData.BackgroundColor = Color.White;
+        dgvAsduData.BorderStyle = BorderStyle.None;
+        dgvAsduData.GridColor = Color.FromArgb(230, 230, 230);
+        dgvAsduData.RowHeadersVisible = false;
+        dgvAsduData.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
-        // پس از اتصال، عنوان ستون‌ها را به فارسی تغییر دهید
+        // تنظیم رنگ سطرهای زوج و فرد
+        dgvAsduData.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 248, 248);
+        dgvAsduData.RowsDefaultCellStyle.BackColor = Color.White;
+        dgvAsduData.RowsDefaultCellStyle.Font = new Font("Segoe UI", 9F);
+        dgvAsduData.RowsDefaultCellStyle.ForeColor = Color.FromArgb(50, 50, 50);
+        dgvAsduData.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(0, 120, 215);
+        dgvAsduData.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+        dgvAsduData.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        dgvAsduData.EnableHeadersVisualStyles = false;
+
         if (dgvAsduData.Columns.Count > 0)
         {
             dgvAsduData.Columns["Timestamp"].HeaderText = "زمان";
@@ -114,7 +127,7 @@ public partial class MainForm : System.Windows.Forms.Form
                     CommonAddress = message.CommonAddress,
                     CotDescription = message.CotDescription,
                     InformationObjectAddress = point.ObjectAddress,
-                   
+
                     Value = point.Value,
                     Quality = point.Quality
                 });
@@ -122,12 +135,16 @@ public partial class MainForm : System.Windows.Forms.Form
 
             // به‌روزرسانی BindingSource
             _asduBindingSource.ResetBindings(false);
-
-            // اسکرول به پایین
-            dgvAsduData.FirstDisplayedScrollingRowIndex = dgvAsduData.Rows.Count - 1;
+            if (dgvAsduData.Rows.Count > 0)
+            {
+                // اسکرول به پایین
+                dgvAsduData.FirstDisplayedScrollingRowIndex = dgvAsduData.Rows.Count - 1;
+            }
         }
 
-        lstLog.Items.Insert(0, $"{message.Timestamp:HH:mm:ss} [{message.Kind}] {message.Title} - {message.Details}");
+        // نمایش در لاگ با رنگ‌های مختلف
+        string logEntry = $"{message.Timestamp:HH:mm:ss} [{message.Kind}] {message.Title} - {message.Details}";
+        lstLog.Items.Insert(0, logEntry);
     }
 
     private void OnConnectionStateChanged(ConnectionStateDto state)
@@ -138,9 +155,9 @@ public partial class MainForm : System.Windows.Forms.Form
             return;
         }
 
-        lblStatus.Text = state.StatusText;
+        lblStatus.Text = state.StatusText == "Connected" ? "🟢 Connected" : "Disconnected";
+        lblStatus.ForeColor = state.StatusText == "Connected" ? Color.FromArgb(0, 180, 60) : Color.FromArgb(200, 50, 50);
 
-        // به‌روزرسانی وضعیت دکمه‌ها بر اساس اتصال
         bool isConnected = state.StatusText == "Connected";
         btnConnect.Enabled = !isConnected;
         btnDisconnect.Enabled = isConnected;
@@ -179,7 +196,7 @@ public partial class MainForm : System.Windows.Forms.Form
 
         ShowLoading(true);
         // ========== اضافه کردن تاخیر تستی ==========
-        await Task.Delay(3000); // ۵ ثانیه تاخیر برای مشاهده‌ی لودینگ
+        //await Task.Delay(3000); // ۵ ثانیه تاخیر برای مشاهده‌ی لودینگ
         // ===========================================
 
         try
