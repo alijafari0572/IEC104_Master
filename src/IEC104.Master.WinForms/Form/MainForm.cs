@@ -39,7 +39,7 @@ public partial class MainForm : System.Windows.Forms.Form
         ConfigureDataGridView();
 
         // شروع اتصال خودکار
-        await AutoConnectAsync();
+        //await AutoConnectAsync();
     }
 
     private void ConfigureDataGridView()
