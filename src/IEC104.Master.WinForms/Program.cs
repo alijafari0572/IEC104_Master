@@ -20,11 +20,15 @@
 //}
 
 using IEC104.Master.Application.Abstractions;
+using IEC104.Master.Application.Abstractions.Repositories;
 using IEC104.Master.Application.Services;
 using IEC104.Master.Infrastructure.Adapters;
+using IEC104.Master.Infrastructure.Data;
+using IEC104.Master.Infrastructure.Data.Repositories;
 using IEC104.Master.Infrastructure.Options;
 using IEC104.Master.Infrastructure.Services;
 using IEC104.Master.WinForms.Form;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -38,6 +42,26 @@ internal static class Program
         ApplicationConfiguration.Initialize();
 
         var builder = Host.CreateApplicationBuilder();
+
+        // ===== تنظیمات دیتابیس SQLite =====
+        var dbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "IEC104_Master",
+            "iec104_data.db");
+
+        var dbDirectory = Path.GetDirectoryName(dbPath);
+        if (!Directory.Exists(dbDirectory))
+            Directory.CreateDirectory(dbDirectory!);
+
+        builder.Services.AddDbContext<AppDbContext>(options =>
+        {
+            options.UseSqlite($"Data Source={dbPath}");
+        });
+
+        // ===== ثبت Repositoryها و UnitOfWork =====
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IPointRepository, PointRepository>();
+        builder.Services.AddScoped<IEventRepository, EventRepository>();
 
         builder.Services.AddSingleton(new Iec104Options
         {

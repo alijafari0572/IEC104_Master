@@ -1,9 +1,12 @@
 using IEC104.Master.Application.Abstractions;
+using IEC104.Master.Application.Abstractions.Repositories;
 using IEC104.Master.Application.DTOs;
+using IEC104.Master.Domain.Entities;
 using IEC104.Master.Infrastructure.Options;
 using IEC104.Master.WinForms.Form;
 using IEC104.Master.WinForms.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Point = IEC104.Master.Domain.Entities.Point;
 
 namespace IEC104.Master.WinForms.Form;
 
@@ -14,13 +17,15 @@ public partial class MainForm : System.Windows.Forms.Form
     private readonly IServiceProvider _serviceProvider; // ← اضافه کنید
     private readonly BindingSource _asduBindingSource = new BindingSource();
     private readonly List<AsduDisplayModel> _asduDisplayList = new List<AsduDisplayModel>();
+    private readonly IUnitOfWork _unitOfWork; // ← اضافه کنید
 
-    public MainForm(IIec104MasterAppService appService, Iec104Options options, IServiceProvider serviceProvider)
+    public MainForm(IIec104MasterAppService appService, Iec104Options options, IServiceProvider serviceProvider, IUnitOfWork unitOfWork)
     {
         InitializeComponent();
         _appService = appService;
         _options = options;
         _serviceProvider = serviceProvider;
+        _unitOfWork = unitOfWork;
 
         _appService.MessagePublished += OnMessagePublished;
         _appService.ConnectionStateChanged += OnConnectionStateChanged;
@@ -103,13 +108,71 @@ public partial class MainForm : System.Windows.Forms.Form
         await _appService.SendGeneralInterrogationAsync(new GeneralInterrogationRequestDto(20));
     }
 
-    private void OnMessagePublished(ProtocolMessageDto message)
+    private async void OnMessagePublished(ProtocolMessageDto message)
     {
         if (InvokeRequired)
         {
             BeginInvoke(new Action(() => OnMessagePublished(message)));
             return;
         }
+
+        // ===== ذخیره در دیتابیس =====
+        if (message.Points != null && message.Points.Any())
+        {
+            try
+            {
+                foreach (var point in message.Points)
+                {
+                    // ۱. پیدا کردن Point بر اساس IOA
+                    var existingPoint = await _unitOfWork.Points.GetByIOAAsync(point.ObjectAddress);
+
+                    if (existingPoint == null)
+                    {
+                        // ۲. اگر وجود نداشت، ایجاد کنید
+                        existingPoint = new Point
+                        {
+                            InformationObjectAddress = point.ObjectAddress,
+                            Name = $"Point_{point.ObjectAddress}",
+                            TypeId = message.TypeId,
+                            TypeName = message.TypeName,
+                            CreatedAt = DateTime.Now
+                        };
+                        await _unitOfWork.Points.AddAsync(existingPoint);
+                    }
+                    else
+                    {
+                        // ۳. به‌روزرسانی اطلاعات
+                        existingPoint.TypeId = message.TypeId;
+                        existingPoint.TypeName = message.TypeName;
+                        existingPoint.UpdatedAt = DateTime.Now;
+                        _unitOfWork.Points.Update(existingPoint);
+                    }
+
+                    // ★★★ اصلاح اساسی: ایجاد Event و افزودن به رابطه ★★★
+                    var eventEntity = new Event
+                    {
+                        // PointId را تنظیم نمی‌کنیم (EF Core خودش از رابطه می‌فهمد)
+                        Timestamp = message.Timestamp,
+                        Value = point.Value?.ToString() ?? string.Empty,
+                        Quality = point.Quality ?? "Unknown",
+                        RawData = message.Details,
+                        CreatedAt = DateTime.Now
+                    };
+
+                    // ★ اضافه کردن Event به مجموعه‌ی Events نقطه
+                    existingPoint.Events.Add(eventEntity);
+                }
+
+                // ۴. ذخیره‌سازی نهایی در دیتابیس
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                // نمایش خطا در لاگ
+                lstLog.Items.Insert(0, $"{DateTime.Now:HH:mm:ss} [Error] Database save failed - {ex.Message}");
+            }
+        }
+
         // نمایش در DataGridView
         if (message.Points != null && message.Points.Any())
         {
