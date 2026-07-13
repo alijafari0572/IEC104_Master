@@ -14,6 +14,8 @@ namespace IEC104.Master.Application.Services
 
         public event Action<ConnectionStateDto>? ConnectionStateChanged;
 
+        private int _commonAddress = 1;
+
         public Iec104MasterAppService(IIec104Transport transport)
         {
             _transport = transport;
@@ -30,5 +32,10 @@ namespace IEC104.Master.Application.Services
 
         public Task SendGeneralInterrogationAsync(GeneralInterrogationRequestDto request, CancellationToken cancellationToken = default)
             => _transport.SendGeneralInterrogationAsync(request.Qoi, cancellationToken);
+
+        public async Task SendSinglePointReadAsync(int ioa)
+        {
+            await _transport.SendSinglePointReadAsync(ioa, _commonAddress);
+        }
     }
 }

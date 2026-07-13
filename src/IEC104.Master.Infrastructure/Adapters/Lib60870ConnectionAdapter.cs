@@ -67,6 +67,23 @@ namespace IEC104.Master.Infrastructure.Adapters
             }
         }
 
+        public bool SendReadCommand(int ioa, int commonAddress)
+        {
+            try
+            {
+                if (_connection is null) return false;
+
+                // ارسال فرمان خواندن (Read Command) برای IOA مشخص
+                _connection.SendReadCommand(commonAddress, ioa);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ErrorOccurred?.Invoke($"SendReadCommand failed: {ex.Message}");
+                return false;
+            }
+        }
+
         private void OnConnectionHandler(object parameter, ConnectionEvent connectionEvent)
         {
             switch (connectionEvent)

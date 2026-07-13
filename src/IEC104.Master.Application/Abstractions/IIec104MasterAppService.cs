@@ -16,5 +16,10 @@ namespace IEC104.Master.Application.Abstractions
         Task DisconnectAsync(CancellationToken cancellationToken = default);
 
         Task SendGeneralInterrogationAsync(GeneralInterrogationRequestDto request, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// ارسال درخواست خواندن یک نقطه‌ی خاص
+        /// </summary>
+        Task SendSinglePointReadAsync(int ioa);
     }
 }

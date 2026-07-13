@@ -30,6 +30,37 @@ namespace IEC104.Master.WinForms.Form
             this.dgvAsduData = new DataGridView();
             this.lstLog = new ListBox();
 
+            this.btnManageRequests = new Button();
+            this.btnSendRequest = new Button();
+
+            // btnManageRequests
+            this.btnManageRequests.BackColor = Color.FromArgb(156, 39, 176);
+            this.btnManageRequests.FlatAppearance.BorderSize = 0;
+            this.btnManageRequests.FlatStyle = FlatStyle.Flat;
+            this.btnManageRequests.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            this.btnManageRequests.ForeColor = Color.White;
+            this.btnManageRequests.Location = new Point(650, 90);
+            this.btnManageRequests.Name = "btnManageRequests";
+            this.btnManageRequests.Size = new Size(130, 47);
+            this.btnManageRequests.TabIndex = 10;
+            this.btnManageRequests.Text = "⏱️ زمان‌بندی";
+            this.btnManageRequests.UseVisualStyleBackColor = false;
+            this.btnManageRequests.Click += this.btnManageRequests_Click;
+
+            // btnSendRequest
+            this.btnSendRequest.BackColor = Color.FromArgb(255, 152, 0);
+            this.btnSendRequest.FlatAppearance.BorderSize = 0;
+            this.btnSendRequest.FlatStyle = FlatStyle.Flat;
+            this.btnSendRequest.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            this.btnSendRequest.ForeColor = Color.White;
+            this.btnSendRequest.Location = new Point(790, 90);
+            this.btnSendRequest.Name = "btnSendRequest";
+            this.btnSendRequest.Size = new Size(130, 47);
+            this.btnSendRequest.TabIndex = 11;
+            this.btnSendRequest.Text = "📤 ارسال دستی";
+            this.btnSendRequest.UseVisualStyleBackColor = false;
+            this.btnSendRequest.Click += this.btnSendRequest_Click;
+
             // ===== panlLoading =====
             this.panlLoading.Anchor = AnchorStyles.None;
             this.panlLoading.BackColor = Color.FromArgb(240, 240, 240);
@@ -72,6 +103,10 @@ namespace IEC104.Master.WinForms.Form
             this.flowLayoutPanelTop.Controls.Add(this.btnConnect);
             this.flowLayoutPanelTop.Controls.Add(this.btnDisconnect);
             this.flowLayoutPanelTop.Controls.Add(this.btnGI);
+
+            // اضافه کردن به flowLayoutPanelTop
+            this.flowLayoutPanelTop.Controls.Add(this.btnManageRequests);
+            this.flowLayoutPanelTop.Controls.Add(this.btnSendRequest);
 
             // ===== lblStatus =====
             this.lblStatus.AutoSize = true;
@@ -207,6 +242,9 @@ namespace IEC104.Master.WinForms.Form
         private DataGridView dgvAsduData;
         private SplitContainer splitContainerMain;
         private FlowLayoutPanel flowLayoutPanelTop; // ← جدید
+
+        private Button btnManageRequests;
+        private Button btnSendRequest;
 
         [System.Runtime.InteropServices.DllImport("gdi32.dll")]
         private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);

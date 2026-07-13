@@ -15,6 +15,7 @@ namespace IEC104.Master.Infrastructure.Data
 
         public DbSet<Point> Points { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<PeriodicRequest> PeriodicRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,6 +52,21 @@ namespace IEC104.Master.Infrastructure.Data
                     .WithMany(p => p.Events)
                     .HasForeignKey(e => e.PointId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<PeriodicRequest>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                entity.Property(e => e.Parameter)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                entity.Property(e => e.Type)
+                    .IsRequired();
+                entity.Property(e => e.IntervalMinutes)
+                    .IsRequired();
+                entity.HasIndex(e => e.IsActive);
             });
         }
     }

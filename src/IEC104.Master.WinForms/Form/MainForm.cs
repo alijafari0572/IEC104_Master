@@ -18,14 +18,17 @@ public partial class MainForm : System.Windows.Forms.Form
     private readonly BindingSource _asduBindingSource = new BindingSource();
     private readonly List<AsduDisplayModel> _asduDisplayList = new List<AsduDisplayModel>();
     private readonly IUnitOfWork _unitOfWork; // ← اضافه کنید
+    private readonly IPeriodicRequestScheduler _scheduler; // ← اضافه کنید
 
-    public MainForm(IIec104MasterAppService appService, Iec104Options options, IServiceProvider serviceProvider, IUnitOfWork unitOfWork)
+    public MainForm(IIec104MasterAppService appService, Iec104Options options, IServiceProvider serviceProvider, IUnitOfWork unitOfWork, IPeriodicRequestScheduler scheduler)
     {
         InitializeComponent();
         _appService = appService;
         _options = options;
         _serviceProvider = serviceProvider;
         _unitOfWork = unitOfWork;
+        _scheduler = scheduler;
+        _scheduler.RequestExecuted += OnSchedulerRequestExecuted;
 
         _appService.MessagePublished += OnMessagePublished;
         _appService.ConnectionStateChanged += OnConnectionStateChanged;
@@ -45,6 +48,27 @@ public partial class MainForm : System.Windows.Forms.Form
 
         // شروع اتصال خودکار
         //await AutoConnectAsync();
+        // شروع زمان‌بند
+        await _scheduler.StartAsync();
+    }
+
+    private void OnSchedulerRequestExecuted(object? sender, PeriodicRequestExecutedEventArgs e)
+    {
+        // نمایش در لاگ
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => OnSchedulerRequestExecuted(sender, e)));
+            return;
+        }
+
+        string status = e.Success ? "✅" : "❌";
+        lstLog.Items.Insert(0, $"{e.ExecutedAt:HH:mm:ss} [Scheduler] {status} {e.RequestName} - {e.Message}");
+    }
+
+    protected override async void OnFormClosing(FormClosingEventArgs e)
+    {
+        await _scheduler.StopAsync();
+        base.OnFormClosing(e);
     }
 
     private void ConfigureDataGridView()
@@ -295,5 +319,17 @@ public partial class MainForm : System.Windows.Forms.Form
 
     private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
     {
+    }
+
+    private void btnManageRequests_Click(object sender, EventArgs e)
+    {
+        using var form = _serviceProvider.GetRequiredService<PeriodicRequestsForm>();
+        form.ShowDialog(this);
+    }
+
+    private void btnSendRequest_Click(object sender, EventArgs e)
+    {
+        using var form = _serviceProvider.GetRequiredService<SendRequestForm>();
+        form.ShowDialog(this);
     }
 }

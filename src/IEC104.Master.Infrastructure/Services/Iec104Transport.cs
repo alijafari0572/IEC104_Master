@@ -108,6 +108,24 @@ namespace IEC104.Master.Infrastructure.Services
             return Task.CompletedTask;
         }
 
+        public async Task SendSinglePointReadAsync(int ioa, int commonAddress, CancellationToken cancellationToken = default)
+        {
+            await Task.Run(() =>
+            {
+                var ok = _adapter.SendReadCommand(ioa, commonAddress);
+                if (!ok)
+                {
+                    MessageReceived?.Invoke(new ProtocolMessageDto(
+                        DateTimeOffset.Now, "Error", "Read Command", $"Failed to read IOA {ioa}"));
+                }
+                else
+                {
+                    MessageReceived?.Invoke(new ProtocolMessageDto(
+                        DateTimeOffset.Now, "Info", "Read Command", $"Read request sent for IOA {ioa}"));
+                }
+            });
+        }
+
         public void Dispose() => _adapter.Dispose();
 
         private string FormatParsedASDU(ParsedASDU parsedAsdu)

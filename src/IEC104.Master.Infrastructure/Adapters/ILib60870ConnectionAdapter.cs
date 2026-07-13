@@ -20,5 +20,10 @@ namespace IEC104.Master.Infrastructure.Adapters
         void Disconnect();
 
         bool SendGeneralInterrogation(byte qoi, int commonAddress);
+
+        /// <summary>
+        /// ارسال فرمان خواندن برای یک نقطه‌ی خاص
+        /// </summary>
+        bool SendReadCommand(int ioa, int commonAddress);
     }
 }

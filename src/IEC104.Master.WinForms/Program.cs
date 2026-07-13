@@ -76,8 +76,18 @@ internal static class Program
         builder.Services.AddSingleton<IIec104Transport, Iec104Transport>();
         builder.Services.AddSingleton<IIec104MasterAppService, Iec104MasterAppService>();
 
+        // در Program.cs، سرویس‌های جدید را ثبت کنید
+
+        builder.Services.AddScoped<IPeriodicRequestRepository, PeriodicRequestRepository>();
+        builder.Services.AddSingleton<IPeriodicRequestScheduler, PeriodicRequestScheduler>();
+
         builder.Services.AddTransient<MainForm>();
         builder.Services.AddTransient<ConnectionSettingsForm>();
+        // در Program.cs، فرم‌های جدید را به DI اضافه کنید:
+
+        builder.Services.AddTransient<PeriodicRequestsForm>();
+        builder.Services.AddTransient<PeriodicRequestEditForm>();
+        builder.Services.AddTransient<SendRequestForm>();
 
         using var host = builder.Build();
         host.Start();
