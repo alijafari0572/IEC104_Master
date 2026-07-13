@@ -14,11 +14,11 @@ public partial class MainForm : System.Windows.Forms.Form
 {
     private readonly IIec104MasterAppService _appService;
     private readonly Iec104Options _options;
-    private readonly IServiceProvider _serviceProvider; // ← اضافه کنید
+    private readonly IServiceProvider _serviceProvider;
     private readonly BindingSource _asduBindingSource = new BindingSource();
     private readonly List<AsduDisplayModel> _asduDisplayList = new List<AsduDisplayModel>();
-    private readonly IUnitOfWork _unitOfWork; // ← اضافه کنید
-    private readonly IPeriodicRequestScheduler _scheduler; // ← اضافه کنید
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IPeriodicRequestScheduler _scheduler;
 
     public MainForm(IIec104MasterAppService appService, Iec104Options options, IServiceProvider serviceProvider, IUnitOfWork unitOfWork, IPeriodicRequestScheduler scheduler)
     {
@@ -38,6 +38,8 @@ public partial class MainForm : System.Windows.Forms.Form
     {
         btnDisconnect.Enabled = false;
         btnGI.Enabled = false;
+        btnManageRequests.Enabled = false;
+        btnSendRequest.Enabled = false;
         lblStatus.Text = "Disconnected";
 
         dgvAsduData.DataSource = _asduBindingSource;
@@ -47,7 +49,7 @@ public partial class MainForm : System.Windows.Forms.Form
         ConfigureDataGridView();
 
         // شروع اتصال خودکار
-        //await AutoConnectAsync();
+        await AutoConnectAsync();
         // شروع زمان‌بند
         await _scheduler.StartAsync();
     }
@@ -117,6 +119,8 @@ public partial class MainForm : System.Windows.Forms.Form
         btnConnect.Enabled = false;
         btnDisconnect.Enabled = true;
         btnGI.Enabled = true;
+        btnManageRequests.Enabled = true;
+        btnSendRequest.Enabled = true;
     }
 
     private async void btnDisconnect_Click_1(object sender, EventArgs e)
@@ -249,6 +253,8 @@ public partial class MainForm : System.Windows.Forms.Form
         btnConnect.Enabled = !isConnected;
         btnDisconnect.Enabled = isConnected;
         btnGI.Enabled = isConnected;
+        btnManageRequests.Enabled = isConnected;
+        btnSendRequest.Enabled = isConnected;
     }
 
     private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -280,6 +286,9 @@ public partial class MainForm : System.Windows.Forms.Form
         // اگر قبلاً متصل هستیم، نیازی به تلاش مجدد نیست
         if (lblStatus.Text == "Connected")
             return;
+
+        // ★ تاخیر کوتاه برای اطمینان از بارگذاری کامل فرم
+        //await Task.Delay(100);
 
         ShowLoading(true);
         // ========== اضافه کردن تاخیر تستی ==========
