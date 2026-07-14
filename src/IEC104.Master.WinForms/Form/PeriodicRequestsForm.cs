@@ -11,8 +11,51 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
+/// <summary>
+/// فضای نام مربوط به فرم‌های ویندوزی برنامه
+/// </summary>
+/// <remarks>
+/// Responsibility:
+/// - شامل پیاده‌سازی رابط کاربری (UI) با استفاده از Windows Forms.
+/// - فرم‌های این فضای نام به عنوان نقطه‌ی ورود برای تعامل کاربر با سیستم هستند.
+///
+/// Design Notes:
+/// - از الگوی MVP (Model-View-Presenter) به صورت غیررسمی استفاده می‌کند.
+/// - فرم‌ها از طریق تزریق وابستگی (DI) سرویس‌های مورد نیاز خود را دریافت می‌کنند.
+/// - ارتباط با لایه‌های پایین‌تر از طریق اینترفیس‌های تعریف شده در لایه‌ی Application انجام می‌شود.
+///
+/// Dependencies:
+/// - وابسته به لایه‌های Application, Infrastructure و Domain.
+/// - از کتابخانه‌های `System.Windows.Forms` و `Microsoft.Extensions.DependencyInjection` استفاده می‌کند.
+/// </remarks>
 namespace IEC104.Master.WinForms.Form
 {
+    /// <summary>
+    /// فرم مدیریت درخواست‌های دوره‌ای (Polling)
+    /// </summary>
+    /// <remarks>
+    /// Role:
+    /// - این فرم به کاربر امکان مدیریت کامل درخواست‌های دوره‌ای را می‌دهد.
+    /// - کاربر می‌تواند درخواست‌ها را مشاهده، افزودن، ویرایش، حذف، فعال/غیرفعال و ارسال فوری کند.
+    /// - این فرم با زمان‌بند (Scheduler) هماهنگ است و تغییرات را به آن اعمال می‌کند.
+    ///
+    /// Collaboration:
+    /// - توسط `MainForm` از طریق دکمه‌ی "زمان‌بندی" باز می‌شود.
+    /// - از `IPeriodicRequestRepository` برای عملیات دیتابیس استفاده می‌کند.
+    /// - از `IPeriodicRequestScheduler` برای اعمال تغییرات و دریافت رویدادهای اجرا استفاده می‌کند.
+    /// - از `PeriodicRequestEditForm` برای افزودن/ویرایش درخواست‌ها استفاده می‌کند.
+    /// - از `IIec104Transport` برای ارسال فوری درخواست‌ها استفاده می‌کند.
+    ///
+    /// Lifecycle:
+    /// - این فرم به صورت Transient (موقت) از طریق DI Container ساخته می‌شود.
+    /// - طول عمر آن تا زمانی که کاربر آن را ببندد ادامه دارد.
+    /// - در رویداد `Load`، لیست درخواست‌ها از دیتابیس بارگذاری می‌شود.
+    ///
+    /// Constraints:
+    /// - این فرم باید به صورت Modal (حالت دیالوگ) نمایش داده شود تا کاربر قبل از ادامه کار، تنظیمات را تأیید یا لغو کند.
+    /// - تمام عملیات‌های طولانی (مانند بارگذاری، ذخیره‌سازی، ارسال) باید به صورت غیرهمگام (Async) انجام شوند تا UI قفل نشود.
+    /// - تغییرات در دیتابیس باید با `ReloadAsync` به زمان‌بند اعمال شوند.
+    /// </remarks>
     public partial class PeriodicRequestsForm : System.Windows.Forms.Form
     {
         private readonly IServiceProvider _serviceProvider;
@@ -20,6 +63,32 @@ namespace IEC104.Master.WinForms.Form
         private readonly BindingSource _bindingSource = new BindingSource();
         private List<PeriodicRequestDto> _requests = new();
 
+        /// <summary>
+        /// سازنده‌ی کلاس PeriodicRequestsForm
+        /// </summary>
+        /// <remarks>
+        /// Purpose:
+        /// - مقداردهی اولیه فرم و دریافت وابستگی‌ها.
+        /// - اشتراک در رویداد `RequestExecuted` از زمان‌بند.
+        ///
+        /// Preconditions:
+        /// - پارامتر `serviceProvider` نباید null باشد.
+        /// - پارامتر `scheduler` نباید null باشد.
+        ///
+        /// Workflow:
+        /// 1. فراخوانی `InitializeComponent()` برای بارگذاری طراحی فرم.
+        /// 2. ذخیره‌سازی `serviceProvider` و `scheduler` در فیلدهای خصوصی.
+        /// 3. اشتراک در رویداد `RequestExecuted` از `_scheduler`.
+        ///
+        /// Side Effects:
+        /// - رویداد `RequestExecuted` به متد `OnSchedulerRequestExecuted` متصل می‌شود.
+        ///
+        /// Limitations:
+        /// - این سازنده نباید شامل عملیات سنگین باشد، زیرا فرم باید سریع باز شود.
+        /// </remarks>
+        /// <param name="serviceProvider">سرویس‌دهنده برای ایجاد Scope و دریافت Repository</param>
+        /// <param name="scheduler">زمان‌بند درخواست‌های دوره‌ای</param>
+        /// <exception cref="ArgumentNullException">در صورتی که `serviceProvider` یا `scheduler` null باشند.</exception>
         public PeriodicRequestsForm(IServiceProvider serviceProvider, IPeriodicRequestScheduler scheduler)
         {
             InitializeComponent();
@@ -28,12 +97,50 @@ namespace IEC104.Master.WinForms.Form
             _scheduler.RequestExecuted += OnSchedulerRequestExecuted;
         }
 
+        /// <summary>
+        /// رویداد بارگذاری فرم مدیریت درخواست‌های دوره‌ای
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - پیکربندی DataGridView و بارگذاری لیست درخواست‌ها از دیتابیس.
+        ///
+        /// Workflow:
+        /// 1. فراخوانی `ConfigureDataGridView()` برای تنظیم ستون‌ها.
+        /// 2. فراخوانی `LoadRequestsAsync()` برای دریافت داده‌ها از دیتابیس.
+        ///
+        /// Side Effects:
+        /// - تغییر تنظیمات DataGridView و پر شدن آن با داده‌ها.
+        ///
+        /// Limitations:
+        /// - این رویداد به صورت `async void` است و خطاهای احتمالی باید در متد `LoadRequestsAsync` مدیریت شوند.
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (فرم)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private async void PeriodicRequestsForm_Load(object sender, EventArgs e)
         {
             ConfigureDataGridView();
             await LoadRequestsAsync();
         }
 
+        /// <summary>
+        /// پیکربندی ظاهری DataGridView برای نمایش درخواست‌های دوره‌ای
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - تنظیم ستون‌های DataGridView به صورت دستی با عنوان‌های فارسی و اتصال به BindingSource.
+        ///
+        /// Workflow:
+        /// 1. غیرفعال کردن `AutoGenerateColumns`.
+        /// 2. پاک کردن ستون‌های موجود.
+        /// 3. اضافه کردن ستون‌ها با `DataPropertyName` مناسب برای اتصال به `PeriodicRequestDto`.
+        /// 4. تنظیم `DataSource` به `_bindingSource`.
+        ///
+        /// Side Effects:
+        /// - تغییر ساختار ستون‌های DataGridView.
+        ///
+        /// Limitations:
+        /// - این متد فرض می‌کند که `dgvRequests` قبلاً مقداردهی شده است.
+        /// </remarks>
         private void ConfigureDataGridView()
         {
             dgvRequests.AutoGenerateColumns = false;
@@ -99,6 +206,27 @@ namespace IEC104.Master.WinForms.Form
             dgvRequests.DataSource = _bindingSource;
         }
 
+        /// <summary>
+        /// بارگذاری لیست درخواست‌های دوره‌ای از دیتابیس
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - دریافت تمام درخواست‌ها از دیتابیس و تبدیل آنها به `PeriodicRequestDto` برای نمایش در UI.
+        ///
+        /// Workflow:
+        /// 1. ایجاد یک Scope جدید از `IServiceProvider`.
+        /// 2. دریافت `IPeriodicRequestRepository` از Scope.
+        /// 3. فراخوانی `GetAllAsync()` برای دریافت تمام موجودیت‌ها.
+        /// 4. تبدیل موجودیت‌ها به `PeriodicRequestDto`.
+        /// 5. تنظیم `_bindingSource.DataSource` به لیست DTOها.
+        /// 6. فراخوانی `ResetBindings(false)` برای به‌روزرسانی UI.
+        ///
+        /// Side Effects:
+        /// - به‌روزرسانی DataGridView با داده‌های جدید.
+        ///
+        /// Limitations:
+        /// - این متد از `async/await` استفاده می‌کند و باید با `await` فراخوانی شود.
+        /// </remarks>
         private async Task LoadRequestsAsync()
         {
             using var scope = _serviceProvider.CreateScope();
@@ -121,6 +249,28 @@ namespace IEC104.Master.WinForms.Form
             _bindingSource.ResetBindings(false);
         }
 
+        /// <summary>
+        /// مدیریت کلیک روی دکمه‌ی افزودن (Add)
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - باز کردن فرم افزودن درخواست جدید و بارگذاری مجدد لیست در صورت تأیید.
+        ///
+        /// Workflow:
+        /// 1. ایجاد نمونه‌ای از `PeriodicRequestEditForm` با `_editId = null`.
+        /// 2. نمایش فرم به صورت Modal.
+        /// 3. اگر نتیجه `OK` بود:
+        ///    a. بارگذاری مجدد لیست با `LoadRequestsAsync()`.
+        ///    b. بازخوانی زمان‌بند با `_scheduler.ReloadAsync()`.
+        ///
+        /// Side Effects:
+        /// - در صورت تأیید، درخواست جدید در دیتابیس ذخیره می‌شود و زمان‌بند به‌روز می‌شود.
+        ///
+        /// Limitations:
+        /// - این متد از `async void` استفاده می‌کند و خطاهای احتمالی باید در فرم `PeriodicRequestEditForm` مدیریت شوند.
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (دکمه btnAdd)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private async void btnAdd_Click(object sender, EventArgs e)
         {
             using var form = new PeriodicRequestEditForm(_serviceProvider, _scheduler);
@@ -131,6 +281,31 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// مدیریت کلیک روی دکمه‌ی ویرایش (Edit)
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - باز کردن فرم ویرایش درخواست انتخاب‌شده و بارگذاری مجدد لیست در صورت تأیید.
+        ///
+        /// Workflow:
+        /// 1. بررسی اینکه آیا ردیفی انتخاب شده است.
+        /// 2. اگر نه، پیام هشدار نمایش داده می‌شود.
+        /// 3. اگر بله، DTO ردیف انتخاب‌شده را دریافت می‌کند.
+        /// 4. ایجاد نمونه‌ای از `PeriodicRequestEditForm` با `_editId = dto.Id`.
+        /// 5. نمایش فرم به صورت Modal.
+        /// 6. اگر نتیجه `OK` بود:
+        ///    a. بارگذاری مجدد لیست با `LoadRequestsAsync()`.
+        ///    b. بازخوانی زمان‌بند با `_scheduler.ReloadAsync()`.
+        ///
+        /// Side Effects:
+        /// - در صورت تأیید، درخواست در دیتابیس به‌روز می‌شود و زمان‌بند به‌روز می‌شود.
+        ///
+        /// Limitations:
+        /// - این متد از `async void` استفاده می‌کند و خطاهای احتمالی باید در فرم `PeriodicRequestEditForm` مدیریت شوند.
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (دکمه btnEdit)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private async void btnEdit_Click(object sender, EventArgs e)
         {
             if (dgvRequests.CurrentRow == null)
@@ -148,6 +323,33 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// مدیریت کلیک روی دکمه‌ی حذف (Delete)
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - حذف درخواست انتخاب‌شده از دیتابیس پس از تأیید کاربر.
+        ///
+        /// Workflow:
+        /// 1. بررسی اینکه آیا ردیفی انتخاب شده است.
+        /// 2. اگر نه، پیام هشدار نمایش داده می‌شود.
+        /// 3. اگر بله، DTO ردیف انتخاب‌شده را دریافت می‌کند.
+        /// 4. نمایش پیام تأیید حذف به کاربر.
+        /// 5. اگر کاربر تأیید کرد:
+        ///    a. ایجاد Scope و دریافت Repository.
+        ///    b. جستجوی موجودیت با `GetByIdAsync`.
+        ///    c. اگر موجودیت یافت شد، آن را حذف و تغییرات را ذخیره می‌کند.
+        ///    d. بارگذاری مجدد لیست.
+        ///    e. بازخوانی زمان‌بند.
+        ///
+        /// Side Effects:
+        /// - حذف درخواست از دیتابیس و به‌روزرسانی زمان‌بند.
+        ///
+        /// Limitations:
+        /// - این متد از `async void` استفاده می‌کند و خطاهای احتمالی در `try-catch` مدیریت نمی‌شوند (می‌توان اضافه کرد).
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (دکمه btnDelete)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private async void btnDelete_Click(object sender, EventArgs e)
         {
             if (dgvRequests.CurrentRow == null)
@@ -174,6 +376,33 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// مدیریت کلیک روی دکمه‌ی تغییر وضعیت (Toggle Active)
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - تغییر وضعیت فعال/غیرفعال یک درخواست و اعمال آن در دیتابیس و زمان‌بند.
+        ///
+        /// Workflow:
+        /// 1. بررسی اینکه آیا ردیفی انتخاب شده است.
+        /// 2. اگر نه، پیام هشدار نمایش داده می‌شود.
+        /// 3. اگر بله، DTO ردیف انتخاب‌شده را دریافت می‌کند.
+        /// 4. ایجاد Scope و دریافت Repository.
+        /// 5. جستجوی موجودیت با `GetByIdAsync`.
+        /// 6. اگر موجودیت یافت شد:
+        ///    a. معکوس کردن `IsActive`.
+        ///    b. به‌روزرسانی موجودیت و ذخیره‌سازی.
+        ///    c. بارگذاری مجدد لیست.
+        ///    d. بازخوانی زمان‌بند.
+        ///
+        /// Side Effects:
+        /// - تغییر وضعیت درخواست در دیتابیس و زمان‌بند.
+        ///
+        /// Limitations:
+        /// - این متد از `async void` استفاده می‌کند و خطاهای احتمالی در `try-catch` مدیریت نمی‌شوند (می‌توان اضافه کرد).
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (دکمه btnToggleActive)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private async void btnToggleActive_Click(object sender, EventArgs e)
         {
             if (dgvRequests.CurrentRow == null)
@@ -199,6 +428,38 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// مدیریت کلیک روی دکمه‌ی ارسال فوری (Send Now)
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - ارسال فوری یک درخواست به RTU بدون انتظار برای بازه‌ی زمانی.
+        ///
+        /// Workflow:
+        /// 1. بررسی اینکه آیا ردیفی انتخاب شده است.
+        /// 2. اگر نه، پیام هشدار نمایش داده می‌شود.
+        /// 3. اگر بله، DTO ردیف انتخاب‌شده را دریافت می‌کند.
+        /// 4. ایجاد Scope و دریافت `IIec104Transport` و `IPeriodicRequestRepository`.
+        /// 5. جستجوی موجودیت با `GetByIdAsync`.
+        /// 6. اگر موجودیت یافت شد:
+        ///    a. غیرفعال کردن دکمه و تغییر متن آن.
+        ///    b. فراخوانی `SendRequestAsync` برای ارسال درخواست.
+        ///    c. به‌روزرسانی `LastExecutedAt` و پاک کردن `ErrorMessage` در دیتابیس.
+        ///    d. بارگذاری مجدد لیست و نمایش پیام موفقیت.
+        /// 7. در صورت بروز خطا:
+        ///    a. ثبت خطا در `ErrorMessage`.
+        ///    b. بارگذاری مجدد لیست و نمایش پیام خطا.
+        /// 8. در نهایت، فعال کردن مجدد دکمه و بازگرداندن متن آن.
+        ///
+        /// Side Effects:
+        /// - ارسال درخواست به RTU و به‌روزرسانی وضعیت در دیتابیس.
+        ///
+        /// Limitations:
+        /// - این متد از `async void` استفاده می‌کند و خطاها با `try-catch` مدیریت می‌شوند.
+        /// - دکمه در حین ارسال غیرفعال می‌شود تا از کلیک مجدد جلوگیری شود.
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (دکمه btnSendNow)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private async void btnSendNow_Click(object sender, EventArgs e)
         {
             if (dgvRequests.CurrentRow == null)
@@ -251,6 +512,30 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// ارسال یک درخواست به RTU بر اساس نوع آن
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - ارسال درخواست به RTU با استفاده از `IIec104Transport` بر اساس نوع و پارامترهای درخواست.
+        ///
+        /// Workflow:
+        /// 1. بررسی `request.Type`:
+        ///    a. `GeneralInterrogation`: ارسال بازجویی عمومی با QOI از پارامتر (پیش‌فرض ۲۰).
+        ///    b. `GroupInterrogation`: ارسال بازجویی گروهی با QOI از پارامتر (پیش‌فرض ۲۰).
+        ///    c. `SinglePoint`: ارسال درخواست خواندن یک نقطه‌ی خاص با QOI از پارامتر (پیش‌فرض ۲۱) و Common Address = ۱.
+        /// 2. اگر نوع پشتیبانی نشود، یک استثنا پرتاب می‌کند.
+        ///
+        /// Side Effects:
+        /// - ارسال درخواست به RTU.
+        ///
+        /// Limitations:
+        /// - برای `SinglePoint`، Common Address به صورت ثابت ۱ ارسال می‌شود. در صورت نیاز به پیکربندی، باید از تنظیمات خوانده شود.
+        /// - پارامتر `QOI` برای `SinglePoint` به صورت عددی تفسیر می‌شود؛ ممکن است برخی RTUها مقدار خاصی را انتظار داشته باشند.
+        /// </remarks>
+        /// <param name="transport">سرویس حمل‌ونقل برای ارسال درخواست</param>
+        /// <param name="request">موجودیت درخواست دوره‌ای</param>
+        /// <exception cref="NotSupportedException">در صورتی که نوع درخواست پشتیبانی نشود.</exception>
         private async Task SendRequestAsync(IIec104Transport transport, PeriodicRequest request)
         {
             switch (request.Type)
@@ -275,6 +560,27 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// مدیریت رویداد اجرای یک درخواست توسط زمان‌بند
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - به‌روزرسانی خودکار لیست درخواست‌ها پس از اجرای خودکار زمان‌بند.
+        ///
+        /// Workflow:
+        /// 1. بررسی اینکه آیا در ترد اصلی هستیم (اگر نه، از `BeginInvoke` استفاده می‌کند).
+        /// 2. پیدا کردن آیتم مربوطه در `_requests` بر اساس `RequestId`.
+        /// 3. به‌روزرسانی `LastExecutedAt` و `ErrorMessage` در آیتم.
+        /// 4. فراخوانی `ResetBindings(false)` برای به‌روزرسانی UI.
+        ///
+        /// Side Effects:
+        /// - به‌روزرسانی DataGridView با آخرین وضعیت اجرا.
+        ///
+        /// Limitations:
+        /// - این متد فقط زمان و خطا را به‌روز می‌کند و وضعیت موفقیت را در `Status` نمایش نمی‌دهد (می‌توان اضافه کرد).
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (معمولاً `PeriodicRequestScheduler`)</param>
+        /// <param name="e">اطلاعات مربوط به اجرای درخواست</param>
         private void OnSchedulerRequestExecuted(object? sender, PeriodicRequestExecutedEventArgs e)
         {
             // به‌روزرسانی لیست پس از اجرای خودکار زمان‌بند
@@ -294,6 +600,24 @@ namespace IEC104.Master.WinForms.Form
             }
         }
 
+        /// <summary>
+        /// مدیریت کلیک روی دکمه‌ی بستن (Close)
+        /// </summary>
+        /// <remarks>
+        /// Goal:
+        /// - بستن فرم مدیریت درخواست‌ها.
+        ///
+        /// Workflow:
+        /// 1. فراخوانی `Close()` برای بستن فرم.
+        ///
+        /// Side Effects:
+        /// - فرم بسته می‌شود و کنترل به فرم فراخوان (معمولاً `MainForm`) بازمی‌گردد.
+        ///
+        /// Limitations:
+        /// - هیچ عملیات پاک‌سازی خاصی انجام نمی‌شود.
+        /// </remarks>
+        /// <param name="sender">فرستنده رویداد (دکمه btnClose)</param>
+        /// <param name="e">آرگومان‌های رویداد</param>
         private void btnClose_Click(object sender, EventArgs e)
         {
             Close();

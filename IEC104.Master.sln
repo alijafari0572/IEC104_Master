@@ -1,0 +1,11 @@
+{
+  "solution": {
+    "path": "IEC104.Master.slnx",
+    "projects": [
+      "src\\IEC104.Master.Application\\IEC104.Master.Application.csproj",
+      "src\\IEC104.Master.Domain\\IEC104.Master.Domain.csproj",
+      "src\\IEC104.Master.Infrastructure\\IEC104.Master.Infrastructure.csproj",
+      "src\\IEC104.Master.WinForms\\IEC104.Master.WinForms.csproj"
+    ]
+  }
+}
