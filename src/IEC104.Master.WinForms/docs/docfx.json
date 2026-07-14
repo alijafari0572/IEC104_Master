@@ -6,7 +6,8 @@
           "src": "../bin/Release/net10.0-windows",
 
           "files": [
-            "IEC104.Master.WinForms.dll"
+            "IEC104.Master.WinForms.dll",
+            "IEC104.Master.Domain.dll"
           ]
         }
       ],
