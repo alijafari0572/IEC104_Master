@@ -141,7 +141,7 @@ namespace IEC104.Master.WinForms.Form
             this.btnDisconnect.ForeColor = Color.White;
             this.btnDisconnect.Location = new Point(326, 20);
             this.btnDisconnect.Name = "btnDisconnect";
-            this.btnDisconnect.Size = new Size(128, 47);
+            this.btnDisconnect.Size = new Size(140, 47);
             this.btnDisconnect.TabIndex = 1;
             this.btnDisconnect.Text = "⛔ Disconnect";
             this.btnDisconnect.UseVisualStyleBackColor = false;
@@ -241,7 +241,7 @@ namespace IEC104.Master.WinForms.Form
         private ProgressBar progressBarLoading;
         private DataGridView dgvAsduData;
         private SplitContainer splitContainerMain;
-        private FlowLayoutPanel flowLayoutPanelTop; // ← جدید
+        private FlowLayoutPanel flowLayoutPanelTop; 
 
         private Button btnManageRequests;
         private Button btnSendRequest;
